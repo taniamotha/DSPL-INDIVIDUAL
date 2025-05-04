@@ -222,3 +222,24 @@ elif page == "Volatility & Stability":
                          aspect="auto", color_continuous_scale="Reds",
                          title="Yearly Volatility by Currency")
     st.plotly_chart(fig_heat, use_container_width=True)
+# -------------------------------
+# DATA TABLE & DOWNLOAD
+# -------------------------------
+elif page == "Data Table & Download":
+    st.header("Exchange Rate Data Table & Export")
+    min_date = df['Month'].min()
+    max_date = df['Month'].max()
+    start_date, end_date = st.date_input("Select Date Range:", [min_date, max_date], min_value=min_date, max_value=max_date)
+    filtered_df = df[(df['Month'] >= pd.to_datetime(start_date)) & (df['Month'] <= pd.to_datetime(end_date))]
+
+    st.dataframe(filtered_df.style.format({c: "{:.2f}" for c in currencies}), use_container_width=True)
+
+    csv = filtered_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download CSV",
+        data=csv,
+        file_name='filtered_exchange_rates.csv',
+        mime='text/csv'
+    )
+
+

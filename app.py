@@ -166,3 +166,34 @@ elif page == "Trends Overview":
     pie_fig = px.pie(avg_total, names='Currency', values='Rate',
                      title='Average Contribution by Currency (2000–2025)', template='plotly_white', hole=0.4)
     st.plotly_chart(pie_fig, use_container_width=True)
+  # -------------------------------
+# CURRENCY INSIGHTS
+# -------------------------------
+elif page == "Currency Insights":
+    st.header("Currency Insights")
+    selected_currency = st.selectbox("Select a currency to explore:", currencies)
+
+    st.subheader("Monthly Trend")
+    filtered = df[['Month', selected_currency]]
+    fig_line = px.line(filtered, x='Month', y=selected_currency,
+                       title=f'{selected_currency} Exchange Rate Over Time', template='plotly_white')
+    st.plotly_chart(fig_line, use_container_width=True)
+
+    st.subheader("Yearly Trend")
+    df['Year'] = df['Month'].dt.year
+    df['MonthOnly'] = df['Month'].dt.strftime('%b')
+    season_df = df.groupby(['Year', 'MonthOnly'])[selected_currency].mean().reset_index()
+    season_df['MonthOnly'] = pd.Categorical(season_df['MonthOnly'],
+                                            categories=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], ordered=True)
+    fig_season = px.line(season_df.sort_values('MonthOnly'), x='MonthOnly', y=selected_currency, color='Year',
+                         title=f'{selected_currency} Seasonality by Month (Grouped by Year)', template='plotly_white')
+    st.plotly_chart(fig_season, use_container_width=True)
+
+    st.subheader("Summary Statistics")
+    stats = df[selected_currency].describe().round(2)
+    st.dataframe(stats[['mean', 'min', 'max', 'std']].rename({
+        'mean': 'Mean Rate',
+        'min': 'Minimum Rate',
+        'max': 'Maximum Rate',
+        'std': 'Standard Deviation'
+    }))  

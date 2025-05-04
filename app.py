@@ -142,13 +142,14 @@ if page == "Home":
 
     st.subheader("Disclaimer")
     st.write("This dashboard is for academic purposes and may not reflect real-time exchange rate fluctuations.")
-# -------------------------------
+
 # TRENDS OVERVIEW
 # -------------------------------
 elif page == "Trends Overview":
     st.header("Trends Overview")
 
     st.subheader("1. Average Exchange Rate (2000–2025)")
+    st.write("This bar chart shows the long-term average exchange rate of each currency against the Sri Lankan Rupee (LKR). It provides a sense of which currencies have historically been stronger or weaker relative to the LKR.")
     avg_rates = df[currencies].mean().reset_index()
     avg_rates.columns = ['Currency', 'Average Rate']
     bar_fig = px.bar(avg_rates, x='Currency', y='Average Rate', color='Currency',
@@ -156,17 +157,20 @@ elif page == "Trends Overview":
     st.plotly_chart(bar_fig, use_container_width=True)
 
     st.subheader("2. Cumulative Currency Movement Over Time")
+    st.write("This area chart illustrates the overall trends in exchange rates from 2000 to 2025, helping to visualize how different currencies have moved over time relative to each other.")
     df_melted = df.melt(id_vars='Month', var_name='Currency', value_name='Rate')
     area_fig = px.area(df_melted, x='Month', y='Rate', color='Currency',
                        title='Cumulative Exchange Rate Trends (2000–2025)', template='plotly_white')
     st.plotly_chart(area_fig, use_container_width=True)
 
     st.subheader("3. Currency Contribution to Overall Exchange Rate")
+    st.write("This pie chart reflects each currency’s relative average contribution to the total exchange rates over the period. It highlights the proportion each currency represents in the overall exchange environment.")
     avg_total = df_melted.groupby('Currency')['Rate'].mean().reset_index()
     pie_fig = px.pie(avg_total, names='Currency', values='Rate',
                      title='Average Contribution by Currency (2000–2025)', template='plotly_white', hole=0.4)
     st.plotly_chart(pie_fig, use_container_width=True)
-  # -------------------------------
+
+# -------------------------------
 # CURRENCY INSIGHTS
 # -------------------------------
 elif page == "Currency Insights":
@@ -174,12 +178,14 @@ elif page == "Currency Insights":
     selected_currency = st.selectbox("Select a currency to explore:", currencies)
 
     st.subheader("Monthly Trend")
+    st.write(f"This line chart displays the monthly exchange rate trend of {selected_currency} over the full time period. It helps in identifying long-term patterns, spikes, or drops.")
     filtered = df[['Month', selected_currency]]
     fig_line = px.line(filtered, x='Month', y=selected_currency,
                        title=f'{selected_currency} Exchange Rate Over Time', template='plotly_white')
     st.plotly_chart(fig_line, use_container_width=True)
 
     st.subheader("Yearly Trend")
+    st.write("This chart shows the average monthly trend for each year, helping you spot seasonal patterns and cyclical behaviors in the exchange rate.")
     df['Year'] = df['Month'].dt.year
     df['MonthOnly'] = df['Month'].dt.strftime('%b')
     season_df = df.groupby(['Year', 'MonthOnly'])[selected_currency].mean().reset_index()
@@ -190,24 +196,30 @@ elif page == "Currency Insights":
     st.plotly_chart(fig_season, use_container_width=True)
 
     st.subheader("Summary Statistics")
+    st.write("This table presents the mean, minimum, maximum, and standard deviation of the selected currency’s exchange rate. It provides a quick statistical overview of currency behavior.")
     stats = df[selected_currency].describe().round(2)
     st.dataframe(stats[['mean', 'min', 'max', 'std']].rename({
         'mean': 'Mean Rate',
         'min': 'Minimum Rate',
         'max': 'Maximum Rate',
         'std': 'Standard Deviation'
-    })) 
- # -------------------------------
+    }))
+
+# -------------------------------
 # VOLATILITY & STABILITY
 # -------------------------------
 elif page == "Volatility & Stability":
     st.header("Volatility and Stability")
+
+    st.subheader("Exchange Rate Volatility by Currency")
+    st.write("This box plot shows the spread and variability of exchange rates for each currency, which indicates how volatile they have been over time.")
     melted_df = df.melt(id_vars='Month', value_vars=currencies, var_name='Currency', value_name='Rate')
     fig_box = px.box(melted_df, x='Currency', y='Rate', color='Currency',
                      title="Exchange Rate Volatility by Currency (2000–2025)", template='plotly_white')
     st.plotly_chart(fig_box, use_container_width=True)
 
     st.subheader("Stability Ranking: Standard Deviation")
+    st.write("This bar chart ranks currencies based on their standard deviation — a statistical measure of volatility. A lower value means a more stable currency.")
     stds = df[currencies].std().reset_index()
     stds.columns = ['Currency', 'Standard Deviation']
     stds = stds.sort_values('Standard Deviation', ascending=True)
@@ -216,12 +228,14 @@ elif page == "Volatility & Stability":
     st.plotly_chart(fig_std, use_container_width=True)
 
     st.subheader("Annual Volatility Heatmap")
+    st.write("This heatmap shows year-wise volatility (standard deviation) for each currency. **Darker shades indicate higher volatility** in that particular year, helping to pinpoint periods of instability.")
     df['Year'] = df['Month'].dt.year
     volatility_by_year = df.groupby('Year')[currencies].std().T
     fig_heat = px.imshow(volatility_by_year, labels=dict(x="Year", y="Currency", color="Std Dev"),
                          aspect="auto", color_continuous_scale="Reds",
                          title="Yearly Volatility by Currency")
     st.plotly_chart(fig_heat, use_container_width=True)
+
 # -------------------------------
 # DATA TABLE & DOWNLOAD
 # -------------------------------
@@ -230,8 +244,10 @@ elif page == "Data Table & Download":
     min_date = df['Month'].min()
     max_date = df['Month'].max()
     start_date, end_date = st.date_input("Select Date Range:", [min_date, max_date], min_value=min_date, max_value=max_date)
+
     filtered_df = df[(df['Month'] >= pd.to_datetime(start_date)) & (df['Month'] <= pd.to_datetime(end_date))]
 
+    st.write("Below is a filtered table of the exchange rate data for the selected period. You can download it as a CSV for offline analysis.")
     st.dataframe(filtered_df.style.format({c: "{:.2f}" for c in currencies}), use_container_width=True)
 
     csv = filtered_df.to_csv(index=False).encode('utf-8')
@@ -241,5 +257,3 @@ elif page == "Data Table & Download":
         file_name='filtered_exchange_rates.csv',
         mime='text/csv'
     )
-
-

@@ -196,4 +196,29 @@ elif page == "Currency Insights":
         'min': 'Minimum Rate',
         'max': 'Maximum Rate',
         'std': 'Standard Deviation'
-    }))  
+    })) 
+ # -------------------------------
+# VOLATILITY & STABILITY
+# -------------------------------
+elif page == "Volatility & Stability":
+    st.header("Volatility and Stability")
+    melted_df = df.melt(id_vars='Month', value_vars=currencies, var_name='Currency', value_name='Rate')
+    fig_box = px.box(melted_df, x='Currency', y='Rate', color='Currency',
+                     title="Exchange Rate Volatility by Currency (2000–2025)", template='plotly_white')
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    st.subheader("Stability Ranking: Standard Deviation")
+    stds = df[currencies].std().reset_index()
+    stds.columns = ['Currency', 'Standard Deviation']
+    stds = stds.sort_values('Standard Deviation', ascending=True)
+    fig_std = px.bar(stds, x='Currency', y='Standard Deviation', color='Currency',
+                     title='Currency Stability Ranking (by Standard Deviation)', template='plotly_white')
+    st.plotly_chart(fig_std, use_container_width=True)
+
+    st.subheader("Annual Volatility Heatmap")
+    df['Year'] = df['Month'].dt.year
+    volatility_by_year = df.groupby('Year')[currencies].std().T
+    fig_heat = px.imshow(volatility_by_year, labels=dict(x="Year", y="Currency", color="Std Dev"),
+                         aspect="auto", color_continuous_scale="Reds",
+                         title="Yearly Volatility by Currency")
+    st.plotly_chart(fig_heat, use_container_width=True)

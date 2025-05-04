@@ -142,3 +142,27 @@ if page == "Home":
 
     st.subheader("Disclaimer")
     st.write("This dashboard is for academic purposes and may not reflect real-time exchange rate fluctuations.")
+# -------------------------------
+# TRENDS OVERVIEW
+# -------------------------------
+elif page == "Trends Overview":
+    st.header("Trends Overview")
+
+    st.subheader("1. Average Exchange Rate (2000–2025)")
+    avg_rates = df[currencies].mean().reset_index()
+    avg_rates.columns = ['Currency', 'Average Rate']
+    bar_fig = px.bar(avg_rates, x='Currency', y='Average Rate', color='Currency',
+                     title='Average Exchange Rate vs. LKR (2000–2025)', template='plotly_white')
+    st.plotly_chart(bar_fig, use_container_width=True)
+
+    st.subheader("2. Cumulative Currency Movement Over Time")
+    df_melted = df.melt(id_vars='Month', var_name='Currency', value_name='Rate')
+    area_fig = px.area(df_melted, x='Month', y='Rate', color='Currency',
+                       title='Cumulative Exchange Rate Trends (2000–2025)', template='plotly_white')
+    st.plotly_chart(area_fig, use_container_width=True)
+
+    st.subheader("3. Currency Contribution to Overall Exchange Rate")
+    avg_total = df_melted.groupby('Currency')['Rate'].mean().reset_index()
+    pie_fig = px.pie(avg_total, names='Currency', values='Rate',
+                     title='Average Contribution by Currency (2000–2025)', template='plotly_white', hole=0.4)
+    st.plotly_chart(pie_fig, use_container_width=True)
